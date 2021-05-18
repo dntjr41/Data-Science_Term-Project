@@ -326,7 +326,6 @@ plt.show()
 
 
 # ordinal + standard
-extra_tree = ExtraTreesClassifier()
 extra_tree.fit(data_ss, target)
 feature_imp = pd.Series(extra_tree.feature_importances_, index=data_ss.columns)
 feature_imp.nlargest(11).plot(kind='barh')
@@ -334,7 +333,6 @@ plt.show()
 
 
 # ordinal + minmax
-extra_tree = ExtraTreesClassifier()
 extra_tree.fit(data_mm, target)
 feature_imp = pd.Series(extra_tree.feature_importances_, index=data_mm.columns)
 feature_imp.nlargest(11).plot(kind='barh')
@@ -342,7 +340,6 @@ plt.show()
 
 
 # ordinal + maxabs
-extra_tree = ExtraTreesClassifier()
 extra_tree.fit(data_ma, target)
 feature_imp = pd.Series(extra_tree.feature_importances_, index=data_ma.columns)
 feature_imp.nlargest(11).plot(kind='barh')
