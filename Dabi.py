@@ -11,6 +11,9 @@ from sklearn.preprocessing import RobustScaler
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import MaxAbsScaler
 import category_encoders as ce
+from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import f_classif
+from sklearn.ensemble import ExtraTreesClassifier
 
 # Read the dataset
 data = pd.read_csv("C:/Users/BEE/Desktop/데이터과학/train_strokes.csv")
@@ -167,6 +170,9 @@ print("\n############ Before encoding ############")
 print(data.head())
 print(data.info())
 
+target = data["stroke"].copy()
+data = data.iloc[:, 0:-1]
+
 # Encoding : OrdinalEncoder
 ordinalencoder = OrdinalEncoder()
 
@@ -229,12 +235,17 @@ print("\n\n############ After encoding ############")
 print(data.head())
 print(data.info())
 
+feature_name = ['id', 'gender', 'age', 'hypertension',
+                'heart_disease', 'ever_married', 'work_type',
+                'Residence_type', 'avg_glucose_level',
+                'bmi', 'smoking_status']
 
 # Scaling
 # Robust Scaling
 RobustScaler = preprocessing.RobustScaler()
 data_rb = RobustScaler.fit_transform(data)
 data_rb = pd.DataFrame(data_rb)
+data_rb.columns = feature_name
 print("\nRobust Scaling")
 print(data_rb.head())
 
@@ -242,6 +253,7 @@ print(data_rb.head())
 StandardScaler = preprocessing.StandardScaler()
 data_ss = StandardScaler.fit_transform(data)
 data_ss = pd.DataFrame(data_ss)
+data_ss.columns = feature_name
 print("\nStandard Scaling")
 print(data_ss.head())
 
@@ -249,6 +261,7 @@ print(data_ss.head())
 MinMaxScaler = preprocessing.MinMaxScaler()
 data_mm = MinMaxScaler.fit_transform(data)
 data_mm = pd.DataFrame(data_mm)
+data_mm.columns = feature_name
 print("\nMinMax Scaling")
 print(data_mm.head())
 
@@ -256,5 +269,88 @@ print(data_mm.head())
 MaxAbsScaler = preprocessing.MaxAbsScaler()
 data_ma = MaxAbsScaler.fit_transform(data)
 data_ma = pd.DataFrame(data_ma)
+data_ma.columns = feature_name
 print("\nMaxAbs Scaling")
 print(data_rb.head())
+
+
+##############################################################
+
+# feature selection
+print("\n\nfeature selection\n")
+
+# kbest algorithm
+print("Kbest algorithm")
+
+# ordinal + robust
+k_best = SelectKBest(score_func=f_classif, k = 11)
+kb_fit = k_best.fit(data_rb, target)
+feature_score = pd.DataFrame(pd.concat([pd.DataFrame(data_rb.columns), pd.DataFrame(kb_fit.scores_)], axis=1))
+feature_score.columns = ['feature', 'score']
+print(feature_score.nlargest(11, 'score'))
+print("\n")
+
+# ordinal + standard
+kb_fit = k_best.fit(data_ss, target)
+feature_score = pd.DataFrame(pd.concat([pd.DataFrame(data_ss.columns), pd.DataFrame(kb_fit.scores_)], axis=1))
+feature_score.columns = ['feature', 'score']
+print(feature_score.nlargest(11, 'score'))
+print("\n")
+
+
+# ordinal + minmax
+kb_fit = k_best.fit(data_mm, target)
+feature_score = pd.DataFrame(pd.concat([pd.DataFrame(data_mm.columns), pd.DataFrame(kb_fit.scores_)], axis=1))
+feature_score.columns = ['feature', 'score']
+print(feature_score.nlargest(11, 'score'))
+print("\n")
+
+
+# ordinal + maxabs
+kb_fit = k_best.fit(data_ma, target)
+feature_score = pd.DataFrame(pd.concat([pd.DataFrame(data_ma.columns), pd.DataFrame(kb_fit.scores_)], axis=1))
+feature_score.columns = ['feature', 'score']
+print(feature_score.nlargest(11, 'score'))
+print("\n")
+
+
+#extra tree algorithm
+print("\n\nExtra tree algorithm\n")
+
+# ordinal + robust
+extra_tree = ExtraTreesClassifier()
+extra_tree.fit(data_rb, target)
+feature_imp = pd.Series(extra_tree.feature_importances_, index=data_rb.columns)
+feature_imp.nlargest(11).plot(kind='barh')
+plt.show()
+
+
+# ordinal + standard
+extra_tree = ExtraTreesClassifier()
+extra_tree.fit(data_ss, target)
+feature_imp = pd.Series(extra_tree.feature_importances_, index=data_ss.columns)
+feature_imp.nlargest(11).plot(kind='barh')
+plt.show()
+
+
+# ordinal + minmax
+extra_tree = ExtraTreesClassifier()
+extra_tree.fit(data_mm, target)
+feature_imp = pd.Series(extra_tree.feature_importances_, index=data_mm.columns)
+feature_imp.nlargest(11).plot(kind='barh')
+plt.show()
+
+
+# ordinal + maxabs
+extra_tree = ExtraTreesClassifier()
+extra_tree.fit(data_ma, target)
+feature_imp = pd.Series(extra_tree.feature_importances_, index=data_ma.columns)
+feature_imp.nlargest(11).plot(kind='barh')
+plt.show()
+
+
+#heatmap
+m_data = data.drop(['id'],axis=1)
+corr_matrix = m_data.corr()
+heatmap = sns.heatmap(data[corr_matrix.index].corr(), annot=True)
+plt.show()
