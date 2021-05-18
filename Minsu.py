@@ -5,6 +5,8 @@ from scipy import stats
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn import preprocessing
+from sklearn.feature_selection import SelectKBest, f_classif
+from sklearn.ensemble import ExtraTreesClassifier, ExtraTreesRegressor
 
 # Read the dataset
 data = pd.read_csv("train_strokes.csv")
@@ -153,9 +155,14 @@ data = data.loc[idx_bmi == False]
 print(data.info())
 print(data)
 
-feature_col = ['gender', 'ever_married', 'work_type', 'Residence_type', 'smoking_status']
+# remove unnecessary column(id)
+data = data.drop('id', axis=1)
 
-for feature in feature_col:
+# setup features' column name to encode
+feature_col_encode = ['gender', 'ever_married', 'work_type', 'Residence_type', 'smoking_status']
+
+# one-hot encoding each feature
+for feature in feature_col_encode:
     temp = pd.DataFrame(data[feature])
     data[feature] = pd.get_dummies(temp)
     all_result = pd.get_dummies(temp)
@@ -166,12 +173,44 @@ for feature in feature_col:
     print("Applying to original data")
     print(data[feature])
 
+# scaler setup
 scaler_mm = preprocessing.MinMaxScaler()
 scaler_std = preprocessing.StandardScaler()
 scaler_rbs = preprocessing.RobustScaler()
 scaler_abs = preprocessing.MaxAbsScaler()
 scalers = {'scaler': [scaler_mm, scaler_std, scaler_rbs, scaler_abs]}
+scaler_name = ['MinMax', 'Standard', 'Robust', 'MaxAbs']
 
+# scaling by each method
+data_scaled = list()
 for scaler in scalers['scaler']:
-    df_scaled = pd.DataFrame(scaler.fit_transform(data))
+    df_scaled = pd.DataFrame(scaler.fit_transform(data), columns=data.columns)
+    data_scaled.append(df_scaled)
     print(df_scaled.head())
+
+# setup columns' name
+feature_col = ['gender', 'age', 'hypertension', 'heart_disease', 'ever_married', 'work_type', 'Residence_type',
+               'avg_glucose_level', 'bmi', 'smoking_status']
+target_col = 'stroke'
+
+# feature selection of each scaled data
+for i, dataset in enumerate(data_scaled):
+    # separate feature and target
+    target = dataset[target_col]
+    features = pd.DataFrame(dataset.drop(target_col, axis=1), columns=feature_col)
+    # setup feature selection algorithm
+    k_best = SelectKBest(score_func=f_classif, k=len(feature_col))
+    extra_tree = ExtraTreesRegressor()
+    corrmat = dataset.corr()
+    # fitting feature selection model
+    data_fit = k_best.fit(features, target)
+    extra_tree.fit(features, target)
+    # describe best feature
+    feature_score = pd.DataFrame(pd.concat([pd.DataFrame(features.columns), pd.DataFrame(data_fit.scores_)], axis=1))
+    feature_score.columns = ['Feature', 'Score']
+    feature_importance = pd.Series(extra_tree.feature_importances_, index=features.columns)
+    print(feature_score.nlargest(5, 'Score'))
+    feature_importance.nlargest(5).plot(kind='barh')
+    plt.figure(figsize=(20, 20))
+    gmap = sns.heatmap(data[corrmat.index].corr(), annot=True, cmap="RdYlGn")
+    plt.show()
