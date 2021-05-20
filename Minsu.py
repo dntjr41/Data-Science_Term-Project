@@ -6,7 +6,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn import preprocessing
 from sklearn.feature_selection import SelectKBest, f_classif
-from sklearn.ensemble import ExtraTreesClassifier, ExtraTreesRegressor
+from sklearn.ensemble import ExtraTreesRegressor
+from imblearn.over_sampling import SMOTE
+from sklearn.model_selection import train_test_split
 
 # Read the dataset
 data = pd.read_csv("train_strokes.csv")
@@ -173,6 +175,17 @@ for feature in feature_col_encode:
     print("Applying to original data")
     print(data[feature])
 
+# setup columns' name
+feature_col = ['gender', 'age', 'hypertension', 'heart_disease', 'ever_married', 'work_type', 'Residence_type',
+               'avg_glucose_level', 'bmi', 'smoking_status']
+target_col = 'stroke'
+
+# separate feature and target
+target = data[target_col]
+features = pd.DataFrame(data.drop(target_col, axis=1), columns=feature_col)
+print("The number of features: {0}".format(len(features)))
+print("The number of target: {0}".format(len(target)))
+
 # scaler setup
 scaler_mm = preprocessing.MinMaxScaler()
 scaler_std = preprocessing.StandardScaler()
@@ -184,33 +197,46 @@ scaler_name = ['MinMax', 'Standard', 'Robust', 'MaxAbs']
 # scaling by each method
 data_scaled = list()
 for scaler in scalers['scaler']:
-    df_scaled = pd.DataFrame(scaler.fit_transform(data), columns=data.columns)
+    df_scaled = pd.DataFrame(scaler.fit_transform(features), columns=feature_col)
     data_scaled.append(df_scaled)
     print(df_scaled.head())
 
-# setup columns' name
-feature_col = ['gender', 'age', 'hypertension', 'heart_disease', 'ever_married', 'work_type', 'Residence_type',
-               'avg_glucose_level', 'bmi', 'smoking_status']
-target_col = 'stroke'
-
 # feature selection of each scaled data
 for i, dataset in enumerate(data_scaled):
-    # separate feature and target
-    target = dataset[target_col]
-    features = pd.DataFrame(dataset.drop(target_col, axis=1), columns=feature_col)
     # setup feature selection algorithm
     k_best = SelectKBest(score_func=f_classif, k=len(feature_col))
     extra_tree = ExtraTreesRegressor()
     corrmat = dataset.corr()
     # fitting feature selection model
-    data_fit = k_best.fit(features, target)
-    extra_tree.fit(features, target)
+    data_fit = k_best.fit(dataset, target)
+    extra_tree.fit(dataset, target)
     # describe best feature
-    feature_score = pd.DataFrame(pd.concat([pd.DataFrame(features.columns), pd.DataFrame(data_fit.scores_)], axis=1))
+    feature_score = pd.DataFrame(pd.concat([pd.DataFrame(dataset.columns), pd.DataFrame(data_fit.scores_)], axis=1))
     feature_score.columns = ['Feature', 'Score']
-    feature_importance = pd.Series(extra_tree.feature_importances_, index=features.columns)
+    feature_importance = pd.Series(extra_tree.feature_importances_, index=dataset.columns)
     print(feature_score.nlargest(5, 'Score'))
     feature_importance.nlargest(5).plot(kind='barh')
     plt.figure(figsize=(20, 20))
     gmap = sns.heatmap(data[corrmat.index].corr(), annot=True, cmap="RdYlGn")
-    plt.show()
+    # plt.show()
+
+# drop unselected feature and sampling
+features_sampled = list()
+target_sampled = list()
+feature_selected = ['age', 'hypertension', 'heart_disease', 'avg_glucose_level', 'smoking_status']
+for scaled in data_scaled:
+    smote = SMOTE(random_state=11)
+    # extract top 5 most selected features
+    scaled = pd.DataFrame(scaled[feature_selected], columns=feature_selected)
+    # resampling to solve unbalance problem
+    x, y = smote.fit_resample(scaled, target)
+    features_sampled.append(x)
+    target_sampled.append(y)
+
+valid_ratio = 0.2
+# split train and test dataset
+for n in range(len(features_sampled)):
+    x_data = features_sampled[n]
+    y_data = target_sampled[n]
+    x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size=valid_ratio, shuffle=True,
+                                                        stratify=y_data, random_state=123)
