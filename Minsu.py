@@ -8,7 +8,10 @@ from sklearn import preprocessing
 from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.ensemble import ExtraTreesRegressor
 from imblearn.over_sampling import SMOTE
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, KFold
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score
 
 # Read the dataset
 data = pd.read_csv("train_strokes.csv")
@@ -235,8 +238,45 @@ for scaled in data_scaled:
 
 valid_ratio = 0.2
 # split train and test dataset
+set_x_train = list()
+set_x_test = list()
+set_y_train = list()
+set_y_test = list()
 for n in range(len(features_sampled)):
     x_data = features_sampled[n]
     y_data = target_sampled[n]
+    # split train and test data
     x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size=valid_ratio, shuffle=True,
                                                         stratify=y_data, random_state=123)
+    # store in dataset list
+    set_x_train.append(x_train)
+    set_x_test.append(x_test)
+    set_y_train.append(y_train)
+    set_y_test.append(y_test)
+
+# fitting all model
+for i in range(len(set_x_train)):
+    # get train data each scaled
+    x_temp = set_x_train[i]
+    y_temp = set_y_train[i]
+    # setup classifier models
+    reg = LogisticRegression()
+    k = 5
+    knn = KNeighborsClassifier(n_neighbors=k)
+    e = 5
+    ratio = 0.8
+    gbc = GradientBoostingClassifier(learning_rate=ratio, n_estimators=e)
+    # fit operation
+    reg.fit(x_temp, y_temp)
+    knn.fit(x_temp, y_temp)
+    gbc.fit(x_temp, y_temp)
+    # prediction to check accuracy of model
+    test_x = set_x_test[i]
+    test_y = set_y_test[i]
+    pred_r = reg.predict(test_x)
+    pred_k = knn.predict(test_x)
+    pred_g = gbc.predict(test_x)
+    # show accuracy
+    print("Accuracy of Logistic Regression: {0}".format(accuracy_score(test_y, pred_r)))
+    print("Accuracy of KNN: {0}".format(accuracy_score(test_y, pred_k)))
+    print("Accuracy of GBC: {0}".format(accuracy_score(test_y, pred_g)))
