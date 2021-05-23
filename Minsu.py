@@ -5,7 +5,7 @@ from scipy import stats
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn import preprocessing
-from sklearn.feature_selection import SelectKBest, f_classif
+from sklearn.feature_selection import SelectKBest, mutual_info_classif
 from sklearn.ensemble import ExtraTreesRegressor, GradientBoostingClassifier
 from imblearn.over_sampling import SMOTE
 from sklearn.linear_model import LogisticRegression
@@ -208,7 +208,7 @@ for scaler in scalers['scaler']:
 # feature selection of each scaled data
 for i, dataset in enumerate(data_scaled):
     # setup feature selection algorithm
-    k_best = SelectKBest(score_func=f_classif, k=len(feature_col))
+    k_best = SelectKBest(score_func=mutual_info_classif, k=len(feature_col))
     extra_tree = ExtraTreesRegressor()
     corrmat = dataset.corr()
     # fitting feature selection model
