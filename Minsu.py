@@ -308,3 +308,6 @@ for i in range(len(set_x_train)):
         # show accuracy (cv version)
         print("Accuracy({0} & {1}): {2}".format(name_models[j], "K-Fold", acc_kfold))
         print("Accuracy({0} & {1}): {2}".format(name_models[j], "RS", acc_rs))
+        if j == 1:
+            # In KNN, show best parameter
+            print("Best Parameter of KNN: {0}".format(rand_search.best_params_))
