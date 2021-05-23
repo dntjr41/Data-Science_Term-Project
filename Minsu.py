@@ -6,14 +6,15 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn import preprocessing
 from sklearn.feature_selection import SelectKBest, f_classif
-from sklearn.ensemble import ExtraTreesRegressor
+from sklearn.ensemble import ExtraTreesRegressor, GradientBoostingClassifier
 from imblearn.over_sampling import SMOTE
-from sklearn.model_selection import train_test_split, KFold
 from sklearn.linear_model import LogisticRegression
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split, cross_val_score, RandomizedSearchCV
 
 # Read the dataset
+from sklearn.neighbors import KNeighborsClassifier
+
 data = pd.read_csv("train_strokes.csv")
 
 # Dataset Check
@@ -260,7 +261,7 @@ for i in range(len(set_x_train)):
     x_temp = set_x_train[i]
     y_temp = set_y_train[i]
     # setup classifier models
-    reg = LogisticRegression()
+    reg = LogisticRegression(solver='saga')
     k = 5
     knn = KNeighborsClassifier(n_neighbors=k)
     e = 5
@@ -276,7 +277,34 @@ for i in range(len(set_x_train)):
     pred_r = reg.predict(test_x)
     pred_k = knn.predict(test_x)
     pred_g = gbc.predict(test_x)
-    # show accuracy
+    # show accuracy (first version)
     print("Accuracy of Logistic Regression: {0}".format(accuracy_score(test_y, pred_r)))
     print("Accuracy of KNN: {0}".format(accuracy_score(test_y, pred_k)))
     print("Accuracy of GBC: {0}".format(accuracy_score(test_y, pred_g)))
+    # cross validation
+    models = [reg, knn, gbc]
+    name_models = ["Logistic", "KNN", "GBC"]
+    for j in range(len(models) - 1):
+        # setup cross validation
+        model = models[j]
+        fold_k = 5
+        # parameter setting for each model
+        if j == 0:
+            param_dist = dict(C=stats.uniform(loc=0, scale=4), penalty=['l2', 'l1'])
+            rand_search = RandomizedSearchCV(model, param_distributions=param_dist, scoring='accuracy',
+                                             return_train_score=True, n_jobs=-1)
+        elif j == 1:
+            param_dist = {'n_neighbors': range(1, 21),
+                          'weights': ['uniform', 'distance'],
+                          'metric': ['euclidean', 'manhattan']}
+            rand_search = RandomizedSearchCV(model, param_distributions=param_dist, scoring='accuracy',
+                                             return_train_score=True, n_jobs=-1)
+        # cross validation operation (K-fold and RandomizedSearch)
+        scores_kfold = cross_val_score(model, features_sampled[i], target_sampled[i], cv=fold_k)
+        rand_search.fit(x_temp, y_temp)
+        acc_kfold = np.mean(scores_kfold)
+        pred_rs = rand_search.predict(test_x)
+        acc_rs = accuracy_score(test_y, pred_rs)
+        # show accuracy (cv version)
+        print("Accuracy({0} & {1}): {2}".format(name_models[j], "K-Fold", acc_kfold))
+        print("Accuracy({0} & {1}): {2}".format(name_models[j], "RS", acc_rs))
