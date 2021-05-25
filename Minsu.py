@@ -284,21 +284,23 @@ for i in range(len(set_x_train)):
     # cross validation
     models = [reg, knn, gbc]
     name_models = ["Logistic", "KNN", "GBC"]
-    for j in range(len(models) - 1):
+    for j in range(len(models)):
         # setup cross validation
         model = models[j]
         fold_k = 5
         # parameter setting for each model
-        if j == 0:
+        if j == 0:  # Logistic Regression
             param_dist = dict(C=stats.uniform(loc=0, scale=4), penalty=['l2', 'l1'])
-            rand_search = RandomizedSearchCV(model, param_distributions=param_dist, scoring='accuracy',
-                                             return_train_score=True, n_jobs=-1)
-        elif j == 1:
-            param_dist = {'n_neighbors': range(1, 21),
-                          'weights': ['uniform', 'distance'],
+        elif j == 1:  # KNN
+            param_dist = {'n_neighbors': range(3, 21),
                           'metric': ['euclidean', 'manhattan']}
-            rand_search = RandomizedSearchCV(model, param_distributions=param_dist, scoring='accuracy',
-                                             return_train_score=True, n_jobs=-1)
+        elif j == 2:  # GBC
+            param_dist = {'n_estimators': range(60, 181),
+                          'max_depth': [5, 10, 15, 20, 25],
+                          'learning_rate': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+                          'criterion': ['friedman_mse', 'mse']}
+        rand_search = RandomizedSearchCV(model, param_distributions=param_dist, scoring='accuracy',
+                                         return_train_score=True)
         # cross validation operation (K-fold and RandomizedSearch)
         scores_kfold = cross_val_score(model, features_sampled[i], target_sampled[i], cv=fold_k)
         rand_search.fit(x_temp, y_temp)
@@ -308,6 +310,4 @@ for i in range(len(set_x_train)):
         # show accuracy (cv version)
         print("Accuracy({0} & {1}): {2}".format(name_models[j], "K-Fold", acc_kfold))
         print("Accuracy({0} & {1}): {2}".format(name_models[j], "RS", acc_rs))
-        if j == 1:
-            # In KNN, show best parameter
-            print("Best Parameter of KNN: {0}".format(rand_search.best_params_))
+        print("Best Parameter of {0}: {1}".format(name_models[j], rand_search.best_params_))
