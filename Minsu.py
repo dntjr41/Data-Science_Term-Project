@@ -300,7 +300,7 @@ for i in range(len(set_x_train)):
                           'learning_rate': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
                           'criterion': ['friedman_mse', 'mse']}
         rand_search = RandomizedSearchCV(model, param_distributions=param_dist, scoring='accuracy',
-                                         return_train_score=True)
+                                         return_train_score=True, n_jobs=-1)
         # cross validation operation (K-fold and RandomizedSearch)
         scores_kfold = cross_val_score(model, features_sampled[i], target_sampled[i], cv=fold_k)
         rand_search.fit(x_temp, y_temp)
