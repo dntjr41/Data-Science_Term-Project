@@ -1,10 +1,15 @@
 # Import Libraries
 import pandas as pd
 import numpy as np
+from imblearn.over_sampling import SMOTE
 from scipy import stats
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn import preprocessing
+from sklearn.ensemble import ExtraTreesClassifier, GradientBoostingClassifier
+from sklearn.feature_selection import SelectKBest, f_classif
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split, RandomizedSearchCV
+from sklearn.preprocessing import OrdinalEncoder, RobustScaler
 
 # Read the dataset
 data = pd.read_csv("train_strokes.csv")
@@ -151,3 +156,87 @@ plt.show()
 idx_bmi = find_outliers(data['bmi'])
 data = data.loc[idx_bmi == False]
 print(data.info())
+print(data)
+
+# remove unnecessary column(id)
+data = data.drop('id', axis=1)
+
+# setup columns' name
+feature_col = ['gender', 'age', 'hypertension', 'heart_disease', 'ever_married', 'work_type', 'Residence_type',
+               'avg_glucose_level', 'bmi', 'smoking_status']
+categorical_col = ['gender', 'ever_married', 'work_type', 'Residence_type', 'smoking_status']
+target_col = 'stroke'
+
+# encoding categorical data using OrdinalEncoder
+for feature in categorical_col:
+    feature_set = list(np.unique(data[feature]))
+    print(feature_set)
+    if feature == 'smoking_status':
+        feature_set = ['never smoked', 'formerly smoked', 'smokes']
+    elif feature == 'work_type':
+        feature_set = ['Children', 'Never_worked', 'Private', 'Govt_job', 'Self-employed']
+    feature_raw = {value: index for index, value in enumerate(feature_set)}
+    encoder = OrdinalEncoder()
+    data[feature] = encoder.fit_transform(data[[feature]])
+    print(data.head())
+
+# split feature and target befor scaling
+target = pd.DataFrame(data[target_col], columns=[target_col])
+features = pd.DataFrame(data.drop(target_col, axis=1), columns=feature_col)
+# scaling using RobustScaler
+scaler = RobustScaler()
+features = pd.DataFrame(scaler.fit_transform(features), columns=feature_col)
+target = pd.DataFrame.reset_index(target, drop=True)
+data_scaled = pd.concat([features, target], axis=1)
+print(data_scaled.head())
+
+# feature selection of each scaled data
+# setup feature selection algorithm
+k_best = SelectKBest(score_func=f_classif, k=len(feature_col))
+extra_tree = ExtraTreesClassifier()
+corrmat = data_scaled.corr()
+# fitting feature selection model
+data_fit = k_best.fit(features, target.values.ravel())
+extra_tree.fit(features, target.values.ravel())
+# describe best feature
+feature_score = pd.DataFrame(pd.concat([pd.DataFrame(features.columns), pd.DataFrame(data_fit.scores_)], axis=1))
+feature_score.columns = ['Feature', 'Score']
+feature_importance = pd.Series(extra_tree.feature_importances_, index=features.columns)
+print(feature_score.nlargest(5, 'Score'))
+feature_importance.nlargest(5).plot(kind='barh')
+plt.figure(figsize=(20, 20))
+gmap = sns.heatmap(data[corrmat.index].corr(), annot=True, cmap="RdYlGn")
+plt.show()
+
+# select top 5 feature through mode of every algorithms
+feature_selected_col = ['age', 'hypertension', 'heart_disease', 'ever_married', 'avg_glucose_level']
+
+# oversampling for balance target value
+smote = SMOTE(random_state=123)
+feature_selected = pd.DataFrame(features[feature_selected_col], columns=feature_selected_col)
+x, y = smote.fit_resample(feature_selected, target)
+
+# split train and test dataset
+train_ratio = 0.2
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=train_ratio, shuffle=True, stratify=y,
+                                                    random_state=7)
+
+# model training by Gradient Boosting Classifier
+gbc = GradientBoostingClassifier()
+gbc.fit(x_train, y_train.values.ravel())
+pred_init = gbc.predict(x_test)
+print("Accuracy of initial model: {0}".format(round(accuracy_score(y_test, pred_init), 3)))
+
+# setup hyper-parameter list for tuning
+param_cv = {'n_estimators': range(100, 301, 50),
+            'max_depth': range(1, 21),
+            'max_features': ['auto', 'sqrt', 'log2'],
+            'learning_rate': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+            'criterion': ['friedman_mse', 'mse']}
+# initialize RandomizedSearchCV
+rand_cv = RandomizedSearchCV(gbc, param_distributions=param_cv, cv=5, scoring='accuracy', return_train_score=True,
+                             n_jobs=-1)
+rand_cv.fit(x_train, y_train.values.ravel())
+pred_cv = rand_cv.predict(x_test)
+print("Accuracy after cross validation: {0}".format(accuracy_score(y_test, pred_cv)))
+print("Best parameter: {0}".format(rand_cv.best_params_))
