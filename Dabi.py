@@ -368,6 +368,15 @@ data_mm = data_mm.drop(['gender', 'id', 'Residence_type', 'work_type'], axis=1)
 data_ma = data_ma.drop(['gender', 'id', 'Residence_type', 'work_type'], axis=1)
 
 
+smote = SMOTE(random_state=7)
+data_rb, target_rb = smote.fit_resample(data_rb, target)
+data_ss, target_ss = smote.fit_resample(data_ss, target)
+data_mm, target_mm = smote.fit_resample(data_mm, target)
+data_ma, target_ma = smote.fit_resample(data_ma, target)
+
+target = target_rb
+
+
 # split train and test data
 rb_x_train, rb_x_test, rb_y_train, rb_y_test = train_test_split(data_rb, target, test_size=0.25, shuffle=True,
                                                     stratify=target, random_state=100)
