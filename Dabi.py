@@ -369,14 +369,14 @@ data_ma = data_ma.drop(['gender', 'id', 'Residence_type', 'work_type'], axis=1)
 
 
 # split train and test data
-rb_x_train, rb_x_test, rb_y_train, rb_y_test = train_test_split(data_rb, target, test_size=0.2, shuffle=True,
-                                                    stratify=target, random_state=123)
-ss_x_train, ss_x_test, ss_y_train, ss_y_test = train_test_split(data_ss, target, test_size=0.2, shuffle=True,
-                                                    stratify=target, random_state=123)
-mm_x_train, mm_x_test, mm_y_train, mm_y_test = train_test_split(data_mm, target, test_size=0.2, shuffle=True,
-                                                    stratify=target, random_state=123)
-ma_x_train, ma_x_test, ma_y_train, ma_y_test = train_test_split(data_ma, target, test_size=0.2, shuffle=True,
-                                                    stratify=target, random_state=123)
+rb_x_train, rb_x_test, rb_y_train, rb_y_test = train_test_split(data_rb, target, test_size=0.25, shuffle=True,
+                                                    stratify=target, random_state=100)
+ss_x_train, ss_x_test, ss_y_train, ss_y_test = train_test_split(data_ss, target, test_size=0.25, shuffle=True,
+                                                    stratify=target, random_state=100)
+mm_x_train, mm_x_test, mm_y_train, mm_y_test = train_test_split(data_mm, target, test_size=0.25, shuffle=True,
+                                                    stratify=target, random_state=100)
+ma_x_train, ma_x_test, ma_y_train, ma_y_test = train_test_split(data_ma, target, test_size=0.25, shuffle=True,
+                                                    stratify=target, random_state=100)
 
 
 log = LogisticRegression(solver='saga')
@@ -416,7 +416,7 @@ rand_search_log.fit(rb_x_train, rb_y_train)
 rs_predict = rand_search_log.predict(rb_x_test)
 rs_accuracy = accuracy_score(rb_y_test, rs_predict)
 
-# log accuracy
+# show accuracy
 print("After cross validation\n")
 print("Accuracy(Logistic & K-Fold) : ", kfold_accuracy)
 print("Accuracy(Logistic & Rand Search) : ", rs_accuracy)
@@ -434,7 +434,7 @@ rand_search_knn.fit(rb_x_train, rb_y_train)
 rs_predict = rand_search_knn.predict(rb_x_test)
 rs_accuracy = accuracy_score(rb_y_test, rs_predict)
 
-# knn accuracy
+# show accuracy
 print("\nAccuracy(KNN & K-Fold) : ", kfold_accuracy)
 print("Accuracy(KNN & Rand Search) : ", rs_accuracy)
 print("Best Parameter of KNN : ", rand_search_knn.best_params_)
@@ -455,7 +455,7 @@ rand_search_gbc.fit(rb_x_train, rb_y_train)
 rs_predict = rand_search_gbc.predict(rb_x_test)
 rs_accuracy = accuracy_score(rb_y_test, rs_predict)
 
-# gbc accuracy
+# show accuracy
 print("\nAccuracy(GBC & K-Fold) : ", kfold_accuracy)
 print("Accuracy(GBC & Rand Search) : ", rs_accuracy)
 print("Best Parameter of GBC : ", rand_search_gbc.best_params_)
@@ -491,7 +491,7 @@ rand_search_log.fit(ss_x_train, ss_y_train)
 rs_predict = rand_search_log.predict(ss_x_test)
 rs_accuracy = accuracy_score(ss_y_test, rs_predict)
 
-# log accuracy
+# show accuracy
 print("After cross validation\n")
 print("Accuracy(Logistic & K-Fold) : ", kfold_accuracy)
 print("Accuracy(Logistic & Rand Search) : ", rs_accuracy)
@@ -505,7 +505,7 @@ rand_search_knn.fit(ss_x_train, ss_y_train)
 rs_predict = rand_search_knn.predict(ss_x_test)
 rs_accuracy = accuracy_score(ss_y_test, rs_predict)
 
-# knn accuracy
+# show accuracy
 print("\nAccuracy(KNN & K-Fold) : ", kfold_accuracy)
 print("Accuracy(KNN & Rand Search) : ", rs_accuracy)
 print("Best Parameter of KNN : ", rand_search_knn.best_params_)
@@ -518,7 +518,7 @@ rand_search_gbc.fit(ss_x_train, ss_y_train)
 rs_predict = rand_search_gbc.predict(ss_x_test)
 rs_accuracy = accuracy_score(ss_y_test, rs_predict)
 
-# gbc accuracy
+# show accuracy
 print("\nAccuracy(GBC & K-Fold) : ", kfold_accuracy)
 print("Accuracy(GBC & Rand Search) : ", rs_accuracy)
 print("Best Parameter of GBC : ", rand_search_gbc.best_params_)
@@ -554,7 +554,7 @@ rand_search_log.fit(mm_x_train, mm_y_train)
 rs_predict = rand_search_log.predict(mm_x_test)
 rs_accuracy = accuracy_score(mm_y_test, rs_predict)
 
-# log accuracy
+# show accuracy
 print("After cross validation\n")
 print("Accuracy(Logistic & K-Fold) : ", kfold_accuracy)
 print("Accuracy(Logistic & Rand Search) : ", rs_accuracy)
@@ -568,7 +568,7 @@ rand_search_knn.fit(mm_x_train, mm_y_train)
 rs_predict = rand_search_knn.predict(mm_x_test)
 rs_accuracy = accuracy_score(mm_y_test, rs_predict)
 
-# knn accuracy
+# show accuracy
 print("\nAccuracy(KNN & K-Fold) : ", kfold_accuracy)
 print("Accuracy(KNN & Rand Search) : ", rs_accuracy)
 print("Best Parameter of KNN : ", rand_search_knn.best_params_)
@@ -581,7 +581,7 @@ rand_search_gbc.fit(mm_x_train, mm_y_train)
 rs_predict = rand_search_gbc.predict(mm_x_test)
 rs_accuracy = accuracy_score(mm_y_test, rs_predict)
 
-# gbc accuracy
+# show accuracy
 print("\nAccuracy(GBC & K-Fold) : ", kfold_accuracy)
 print("Accuracy(GBC & Rand Search) : ", rs_accuracy)
 print("Best Parameter of GBC : ", rand_search_gbc.best_params_)
@@ -617,7 +617,7 @@ rand_search_log.fit(ma_x_train, ma_y_train)
 rs_predict = rand_search_log.predict(ma_x_test)
 rs_accuracy = accuracy_score(ma_y_test, rs_predict)
 
-# log accuracy
+# show accuracy
 print("After cross validation\n")
 print("Accuracy(Logistic & K-Fold) : ", kfold_accuracy)
 print("Accuracy(Logistic & Rand Search) : ", rs_accuracy)
@@ -631,7 +631,7 @@ rand_search_knn.fit(ma_x_train, ma_y_train)
 rs_predict = rand_search_knn.predict(ma_x_test)
 rs_accuracy = accuracy_score(ma_y_test, rs_predict)
 
-# knn accuracy
+# show accuracy
 print("\nAccuracy(KNN & K-Fold) : ", kfold_accuracy)
 print("Accuracy(KNN & Rand Search) : ", rs_accuracy)
 print("Best Parameter of KNN : ", rand_search_knn.best_params_)
@@ -644,7 +644,7 @@ rand_search_gbc.fit(ma_x_train, ma_y_train)
 rs_predict = rand_search_gbc.predict(ma_x_test)
 rs_accuracy = accuracy_score(ma_y_test, rs_predict)
 
-# gbc accuracy
+# show accuracy
 print("\nAccuracy(GBC & K-Fold) : ", kfold_accuracy)
 print("Accuracy(GBC & Rand Search) : ", rs_accuracy)
 print("Best Parameter of GBC : ", rand_search_gbc.best_params_)
