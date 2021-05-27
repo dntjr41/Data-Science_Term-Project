@@ -130,7 +130,7 @@ def find_outliers(col):
 # Check age
 plt.figure(figsize=(5, 5))
 boxplot = data.boxplot(column=['age'])
-plt.show()
+# plt.show()
 
 # Use z-score to handle outlier
 idx_age = find_outliers(data['age'])
@@ -140,7 +140,7 @@ print(data.info())
 # Check avg_glucose_level
 plt.figure(figsize=(5, 5))
 boxplot = data.boxplot(column=['avg_glucose_level'])
-plt.show()
+# plt.show()
 
 # Use z-score to handle outlier
 idx_avg_glucose = find_outliers(data['avg_glucose_level'])
@@ -150,13 +150,12 @@ print(data.info())
 # Check bmi
 plt.figure(figsize=(5, 5))
 boxplot = data.boxplot(column=['bmi'])
-plt.show()
+# plt.show()
 
 # Use z-score to handle outlier
 idx_bmi = find_outliers(data['bmi'])
 data = data.loc[idx_bmi == False]
 print(data.info())
-print(data)
 
 # remove unnecessary column(id)
 data = data.drop('id', axis=1)
@@ -170,7 +169,6 @@ target_col = 'stroke'
 # encoding categorical data using OrdinalEncoder
 for feature in categorical_col:
     feature_set = list(np.unique(data[feature]))
-    print(feature_set)
     if feature == 'smoking_status':
         feature_set = ['never smoked', 'formerly smoked', 'smokes']
     elif feature == 'work_type':
@@ -206,7 +204,7 @@ print(feature_score.nlargest(5, 'Score'))
 feature_importance.nlargest(5).plot(kind='barh')
 plt.figure(figsize=(20, 20))
 gmap = sns.heatmap(data[corrmat.index].corr(), annot=True, cmap="RdYlGn")
-plt.show()
+# plt.show()
 
 # select top 5 feature through mode of every algorithms
 feature_selected_col = ['age', 'hypertension', 'heart_disease', 'ever_married', 'avg_glucose_level']
@@ -222,7 +220,7 @@ x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=train_ratio,
                                                     random_state=7)
 
 # model training by Gradient Boosting Classifier
-gbc = GradientBoostingClassifier()
+gbc = GradientBoostingClassifier(random_state=37)
 gbc.fit(x_train, y_train.values.ravel())
 pred_init = gbc.predict(x_test)
 print("Accuracy of initial model: {0}".format(round(accuracy_score(y_test, pred_init), 3)))
@@ -235,8 +233,46 @@ param_cv = {'n_estimators': range(100, 301, 50),
             'criterion': ['friedman_mse', 'mse']}
 # initialize RandomizedSearchCV
 rand_cv = RandomizedSearchCV(gbc, param_distributions=param_cv, cv=5, scoring='accuracy', return_train_score=True,
-                             n_jobs=-1)
+                             n_jobs=-1, random_state=24)
 rand_cv.fit(x_train, y_train.values.ravel())
 pred_cv = rand_cv.predict(x_test)
 print("Accuracy after cross validation: {0}".format(accuracy_score(y_test, pred_cv)))
 print("Best parameter: {0}".format(rand_cv.best_params_))
+
+# real prediction of users
+# setup random input data
+input1 = [24, 0, 0, 'No', 75.34]
+input2 = [52, 0, 1, 'Yes', 152.26]
+input3 = [31, 1, 0, 'No', 92.71]
+input4 = [68, 1, 1, 'Yes', 181.72]
+input_set = [input1, input2, input3, input4]
+
+
+def stroke_prediction(arr):
+    # Thermal encoding for prediction
+    for sample in arr:
+        if sample[3] == 'No':
+            sample[3] = 0
+        elif sample[3] == 'Yes':
+            sample[3] = 1
+
+    # input data scaling and setup model with best parameters
+    arr_scaled = scaler.fit_transform(arr)
+    best_parameter = rand_cv.best_params_
+    model = GradientBoostingClassifier(n_estimators=best_parameter['n_estimators'],
+                                       max_depth=best_parameter['max_depth'],
+                                       max_features=best_parameter['max_features'],
+                                       learning_rate=best_parameter['learning_rate'],
+                                       criterion=best_parameter['criterion'],
+                                       random_state=37)
+    # predict operation
+    model.fit(x_train, y_train.values.ravel())
+    pred_final = model.predict(arr_scaled)
+    return pred_final
+
+
+# setup prediction system through above
+result = stroke_prediction(input_set)
+print(result)
+for stroke in result:
+    print("This person {0}".format('has heart stroke.' if stroke == 1 else 'does not have heart stroke.'))
