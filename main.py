@@ -1,7 +1,8 @@
 # Import Libraries
 import pandas as pd
 import numpy as np
-from imblearn.over_sampling import SMOTE
+import random
+from imblearn.over_sampling import ADASYN
 from scipy import stats
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -115,6 +116,7 @@ print(data['smoking_status'].value_counts())
 print("\n************ Check stroke ****************")
 print(data['stroke'].value_counts())
 
+
 ################# Numeirc value #######################
 # Check the outlier using boxplot
 # https://medium.com/@stevenewmanphotography/eliminating-outliers-in-python-with-z-scores-dd72ca5d4ead
@@ -124,8 +126,9 @@ print(data['stroke'].value_counts())
 # Output = index
 def find_outliers(col):
     z = np.abs(stats.zscore(col))
-    idx_outliers = np.where(z>3, True, False)
+    idx_outliers = np.where(z > 3, True, False)
     return pd.Series(idx_outliers, index=col.index)
+
 
 # Check age
 plt.figure(figsize=(5, 5))
@@ -157,8 +160,10 @@ idx_bmi = find_outliers(data['bmi'])
 data = data.loc[idx_bmi == False]
 print(data.info())
 
-# remove unnecessary column(id)
+# remove unnecessary column(id) and row(gender == 'other')
 data = data.drop('id', axis=1)
+data = data[data['gender'] != 'Other']
+print(data.info())
 
 # setup columns' name
 feature_col = ['gender', 'age', 'hypertension', 'heart_disease', 'ever_married', 'work_type', 'Residence_type',
@@ -210,9 +215,12 @@ gmap = sns.heatmap(data[corrmat.index].corr(), annot=True, cmap="RdYlGn")
 feature_selected_col = ['age', 'hypertension', 'heart_disease', 'ever_married', 'avg_glucose_level']
 
 # oversampling for balance target value
-smote = SMOTE(random_state=123)
+adasyn = ADASYN(random_state=123, sampling_strategy=0.3)
 feature_selected = pd.DataFrame(features[feature_selected_col], columns=feature_selected_col)
-x, y = smote.fit_resample(feature_selected, target)
+x, y = adasyn.fit_resample(feature_selected, target)
+
+print(x.info())
+print(y.info())
 
 # split train and test dataset
 train_ratio = 0.2
@@ -239,13 +247,29 @@ pred_cv = rand_cv.predict(x_test)
 print("Accuracy after cross validation: {0}".format(accuracy_score(y_test, pred_cv)))
 print("Best parameter: {0}".format(rand_cv.best_params_))
 
+
 # real prediction of users
 # setup random input data
-input1 = [24, 0, 0, 'No', 75.34]
-input2 = [52, 0, 1, 'Yes', 152.26]
-input3 = [31, 1, 0, 'No', 92.71]
-input4 = [68, 1, 1, 'Yes', 181.72]
-input_set = [input1, input2, input3, input4]
+def generate_input_data(num):
+    random_data = list()
+    age_seed = range(1, 81)
+    hypertension_seed = [0, 1]
+    heart_disease_seed = [0, 1]
+    ever_married_seed = ['No', 'Yes']
+
+    for i in range(num):
+        temp = list()
+        temp.append(random.choice(age_seed))
+        temp.append(random.choice(hypertension_seed))
+        temp.append(random.choice(heart_disease_seed))
+        temp.append(random.choice(ever_married_seed))
+        temp.append(round(random.uniform(30, 210), 2))
+        random_data.append(temp)
+
+    return random_data
+
+
+input_set = generate_input_data(30)
 
 
 def stroke_prediction(arr):
