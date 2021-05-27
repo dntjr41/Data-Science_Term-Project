@@ -3,9 +3,12 @@ import pandas as pd
 import numpy as np
 import random
 from imblearn.over_sampling import ADASYN
+from imblearn.under_sampling import ClusterCentroids
+from imblearn.combine import SMOTEENN
 from scipy import stats
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.cluster import KMeans
 from sklearn.ensemble import ExtraTreesClassifier, GradientBoostingClassifier
 from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.metrics import accuracy_score
@@ -214,10 +217,10 @@ gmap = sns.heatmap(data[corrmat.index].corr(), annot=True, cmap="RdYlGn")
 # select top 5 feature through mode of every algorithms
 feature_selected_col = ['age', 'hypertension', 'heart_disease', 'ever_married', 'avg_glucose_level']
 
-# oversampling for balance target value
-adasyn = ADASYN(random_state=123, sampling_strategy=0.3)
+# combine(over and under)sampling for balance target value
+sampler = SMOTEENN(random_state=123, sampling_strategy=0.25)
 feature_selected = pd.DataFrame(features[feature_selected_col], columns=feature_selected_col)
-x, y = adasyn.fit_resample(feature_selected, target)
+x, y = sampler.fit_resample(feature_selected, target)
 
 print(x.info())
 print(y.info())
@@ -297,6 +300,6 @@ def stroke_prediction(arr):
 
 # setup prediction system through above
 result = stroke_prediction(input_set)
-print(result)
+print("Stroke: {0}, Not Stroke: {1}".format(sum(result == 1), sum(result == 0)))
 for stroke in result:
     print("This person {0}".format('has heart stroke.' if stroke == 1 else 'does not have heart stroke.'))
