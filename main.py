@@ -2,13 +2,10 @@
 import pandas as pd
 import numpy as np
 import random
-from imblearn.over_sampling import ADASYN
-from imblearn.under_sampling import ClusterCentroids
 from imblearn.combine import SMOTEENN
 from scipy import stats
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.cluster import KMeans
 from sklearn.ensemble import ExtraTreesClassifier, GradientBoostingClassifier
 from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.metrics import accuracy_score
@@ -226,8 +223,7 @@ print(x.info())
 print(y.info())
 
 # split train and test dataset
-train_ratio = 0.2
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=train_ratio, shuffle=True, stratify=y,
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, shuffle=True, stratify=y,
                                                     random_state=7)
 
 # model training by Gradient Boosting Classifier
@@ -272,7 +268,25 @@ def generate_input_data(num):
     return random_data
 
 
+# setup validation data from kaggle
+def generate_valid_data():
+    valid_raw = pd.read_csv("healthcare-dataset-stroke-data.csv")
+    valid_feature = valid_raw[feature_selected_col]
+    valid_target = valid_raw[target_col]
+    # parameter encoding and scaling
+    valid_feature['ever_married'] = valid_feature['ever_married'].apply(lambda a: 0 if a == 'No' else 1)
+    v_scaler = RobustScaler()
+    valid_feature = pd.DataFrame(v_scaler.fit_transform(valid_feature), columns=feature_selected_col)
+
+    # concatenate feature and target
+    all_col = ['age', 'hypertension', 'heart_disease', 'ever_married', 'avg_glucose_level', 'stroke']
+    valid_data = pd.DataFrame(pd.concat([valid_feature, valid_target], axis=1), columns=all_col)
+    return valid_data
+
+
+# make input data and validation data
 input_set = generate_input_data(30)
+valid_set = generate_valid_data()
 
 
 def stroke_prediction(arr):
@@ -295,6 +309,8 @@ def stroke_prediction(arr):
     # predict operation
     model.fit(x_train, y_train.values.ravel())
     pred_final = model.predict(arr_scaled)
+    print("The Accuracy of final model: {0}".format(model.score(valid_set[feature_selected_col],
+                                                                valid_set[target_col])))
     return pred_final
 
 
