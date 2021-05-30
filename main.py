@@ -170,27 +170,31 @@ feature_col = ['gender', 'age', 'hypertension', 'heart_disease', 'ever_married',
                'avg_glucose_level', 'bmi', 'smoking_status']
 categorical_col = ['gender', 'ever_married', 'work_type', 'Residence_type', 'smoking_status']
 target_col = 'stroke'
+features = pd.DataFrame()
+target = pd.DataFrame()
 
-# encoding categorical data using OrdinalEncoder
-for feature in categorical_col:
-    feature_set = list(np.unique(data[feature]))
-    if feature == 'smoking_status':
-        feature_set = ['never smoked', 'formerly smoked', 'smokes']
-    elif feature == 'work_type':
-        feature_set = ['Children', 'Never_worked', 'Private', 'Govt_job', 'Self-employed']
-    feature_raw = {value: index for index, value in enumerate(feature_set)}
-    encoder = OrdinalEncoder()
-    data[feature] = encoder.fit_transform(data[[feature]])
-    print(data.head())
 
-# split feature and target befor scaling
-target = pd.DataFrame(data[target_col], columns=[target_col])
-features = pd.DataFrame(data.drop(target_col, axis=1), columns=feature_col)
-# scaling using RobustScaler
-scaler = RobustScaler()
-features = pd.DataFrame(scaler.fit_transform(features), columns=feature_col)
-target = pd.DataFrame.reset_index(target, drop=True)
-data_scaled = pd.concat([features, target], axis=1)
+def encode_scaling():
+    global features
+    global target
+    # encoding categorical data using OrdinalEncoder
+    for feature in categorical_col:
+        encoder = OrdinalEncoder()
+        data[feature] = encoder.fit_transform(data[[feature]])
+        print(data.head())
+
+    # split feature and target before scaling
+    target = pd.DataFrame(data[target_col], columns=[target_col])
+    features = pd.DataFrame(data.drop(target_col, axis=1), columns=feature_col)
+    # scaling using RobustScaler
+    scaler = RobustScaler()
+    features = pd.DataFrame(scaler.fit_transform(features), columns=feature_col)
+    target = pd.DataFrame.reset_index(target, drop=True)
+    data_result = pd.concat([features, target], axis=1)
+    return data_result
+
+
+data_scaled = encode_scaling()
 print(data_scaled.head())
 
 # feature selection of each scaled data
@@ -298,6 +302,7 @@ def stroke_prediction(arr):
             sample[3] = 1
 
     # input data scaling and setup model with best parameters
+    scaler = RobustScaler()
     arr_scaled = scaler.fit_transform(arr)
     best_parameter = rand_cv.best_params_
     model = GradientBoostingClassifier(n_estimators=best_parameter['n_estimators'],
