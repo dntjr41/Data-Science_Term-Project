@@ -170,32 +170,30 @@ feature_col = ['gender', 'age', 'hypertension', 'heart_disease', 'ever_married',
                'avg_glucose_level', 'bmi', 'smoking_status']
 categorical_col = ['gender', 'ever_married', 'work_type', 'Residence_type', 'smoking_status']
 target_col = 'stroke'
-features = pd.DataFrame()
-target = pd.DataFrame()
+
+# split feature and target before encoding and scaling
+target = pd.DataFrame(data[target_col], columns=[target_col])
+features = pd.DataFrame(data.drop(target_col, axis=1), columns=feature_col)
 
 
-def encode_scaling():
-    global features
-    global target
+def encode_scaling(df, categories):
     # encoding categorical data using OrdinalEncoder
-    for feature in categorical_col:
+    for feature in categories:
         encoder = OrdinalEncoder()
-        data[feature] = encoder.fit_transform(data[[feature]])
-        print(data.head())
+        df[feature] = encoder.fit_transform(df[[feature]])
+        print(df.head())
 
-    # split feature and target before scaling
-    target = pd.DataFrame(data[target_col], columns=[target_col])
-    features = pd.DataFrame(data.drop(target_col, axis=1), columns=feature_col)
     # scaling using RobustScaler
     scaler = RobustScaler()
-    features = pd.DataFrame(scaler.fit_transform(features), columns=feature_col)
-    target = pd.DataFrame.reset_index(target, drop=True)
-    data_result = pd.concat([features, target], axis=1)
+    data_result = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
     return data_result
 
 
-data_scaled = encode_scaling()
+features = encode_scaling(features, categorical_col)
+data_scaled = pd.concat([features, target], axis=1)
 print(data_scaled.head())
+print(features.head())
+print(target.head())
 
 # feature selection of each scaled data
 # setup feature selection algorithm
@@ -269,22 +267,21 @@ def generate_input_data(num):
         temp.append(round(random.uniform(30, 210), 2))
         random_data.append(temp)
 
-    return random_data
+    input_result = pd.DataFrame(random_data, columns=feature_selected_col)
+    return input_result
 
 
 # setup validation data from kaggle
 def generate_valid_data():
+    # read validation dataset and split feature and target
     valid_raw = pd.read_csv("healthcare-dataset-stroke-data.csv")
     valid_feature = valid_raw[feature_selected_col]
     valid_target = valid_raw[target_col]
-    # parameter encoding and scaling
-    valid_feature['ever_married'] = valid_feature['ever_married'].apply(lambda a: 0 if a == 'No' else 1)
-    v_scaler = RobustScaler()
-    valid_feature = pd.DataFrame(v_scaler.fit_transform(valid_feature), columns=feature_selected_col)
 
+    # parameter encoding and scaling
+    valid_feature = encode_scaling(valid_feature, ['ever_married'])
     # concatenate feature and target
-    all_col = ['age', 'hypertension', 'heart_disease', 'ever_married', 'avg_glucose_level', 'stroke']
-    valid_data = pd.DataFrame(pd.concat([valid_feature, valid_target], axis=1), columns=all_col)
+    valid_data = pd.concat([valid_feature, valid_target], axis=1)
     return valid_data
 
 
@@ -293,17 +290,9 @@ input_set = generate_input_data(30)
 valid_set = generate_valid_data()
 
 
-def stroke_prediction(arr):
-    # Thermal encoding for prediction
-    for sample in arr:
-        if sample[3] == 'No':
-            sample[3] = 0
-        elif sample[3] == 'Yes':
-            sample[3] = 1
-
-    # input data scaling and setup model with best parameters
-    scaler = RobustScaler()
-    arr_scaled = scaler.fit_transform(arr)
+def stroke_prediction(df_input):
+    # encoding and scaling input dataset & extract best parameter from above
+    input_scaled = encode_scaling(df_input, ['ever_married'])
     best_parameter = rand_cv.best_params_
     model = GradientBoostingClassifier(n_estimators=best_parameter['n_estimators'],
                                        max_depth=best_parameter['max_depth'],
@@ -313,7 +302,7 @@ def stroke_prediction(arr):
                                        random_state=37)
     # predict operation
     model.fit(x_train, y_train.values.ravel())
-    pred_final = model.predict(arr_scaled)
+    pred_final = model.predict(input_scaled)
     print("The Accuracy of final model: {0}".format(model.score(valid_set[feature_selected_col],
                                                                 valid_set[target_col])))
     return pred_final
