@@ -1,4 +1,4 @@
-#### Open Source Software
+# Open Source Software
 
 -----------------------------
 
@@ -14,7 +14,7 @@ best_accuracy(features, target, categories)
 - output 
  -> Best Accuracy and encoder, scaler combination of Logistic Regression, KNN, GBC 
  
-# code
+### code
 
  def best_accuracy(features, target, categories):
      data_encod = list()
