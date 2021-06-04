@@ -6,6 +6,7 @@
 
 best_accuracy(features, target, categories)
 - parameter
+ 
  -> features : feature dataset
  
  -> target : target dataset
@@ -13,6 +14,7 @@ best_accuracy(features, target, categories)
  -> categories : categorical data columns
 
 - output 
+ 
  -> Best Accuracy and encoder, scaler combination of Logistic Regression, KNN, GBC 
  
 ### code
