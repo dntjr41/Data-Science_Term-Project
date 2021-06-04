@@ -1,4 +1,3 @@
-#opensource
 # Import Libraries
 import pandas as pd
 import numpy as np
@@ -16,7 +15,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import OrdinalEncoder, RobustScaler, LabelEncoder, OneHotEncoder, MaxAbsScaler, MinMaxScaler, StandardScaler
 
 # Read the dataset
-data = pd.read_csv("C:/Users/BEE/Desktop/데이터과학/train_strokes.csv")
+data = pd.read_csv("train_strokes.csv")
 
 # Split the data
 female = data['gender'] == 'Female'
@@ -148,15 +147,11 @@ def best_accuracy(encoding, scaling, features, target, categories):
 
     target = target_s
 
-    logistic_l = list()
-    knn_l = list()
-    gbc_l = list()
-
     print("Input Logistic Regression parameter")
     print("loc(default : -1) : ")
-    l_a = input()
+    l_a = int(input())
     print("scale(default : -1) : ")
-    l_b = input()
+    l_b = int(input())
     print("penalty(default : -1) : ")
     l_c = input()
 
@@ -164,14 +159,14 @@ def best_accuracy(encoding, scaling, features, target, categories):
         l_a = 0
     if l_b == -1:
         l_b = 4
-    if l_c == -1:
+    if l_c == '-1':
         l_c = ['l2', 'l1']
 
     print("\ninput knn parameter")
     print("range (start num) (default : -1) : ")
-    k_a = input()
+    k_a = int(input())
     print("range (finish num) (default : -1) : ")
-    k_b = input()
+    k_b = int(input())
     print("metric(default : -1) : ")
     k_c = input()
 
@@ -179,15 +174,15 @@ def best_accuracy(encoding, scaling, features, target, categories):
         k_a = 3
     if k_b == -1:
         k_b = 21
-    if k_c == -1:
-        k_c = ['euclidean', 'manhatten']
+    if k_c == '-1':
+        k_c = ['euclidean', 'manhattan']
 
 
     print("\ninput gbc parameter")
     print("range(start num) (default : -1) : ")
-    g_a = input()
+    g_a = int(input())
     print("range(finish num) (default : -1) : ")
-    g_b = input()
+    g_b = int(input())
     print("max_depth(default : -1) : ")
     g_c = input()
     print("learning rate(default : -1) : ")
@@ -199,73 +194,61 @@ def best_accuracy(encoding, scaling, features, target, categories):
         g_a = 60
     if g_b == -1:
         g_b = 181
-    if g_c == -1:
+    if g_c == '-1':
         g_c = [5, 10, 15, 20, 25]
-    if g_d == -1:
+    if g_d == '-1':
         g_d = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-    if g_e == -1:
+    if g_e == '-1':
         g_e = ['friedman_mse', 'mse']
 
+    best_m = features
+    best_a = 0
+
     for feature in data_encod_scaled:
-        x_train, x_test, y_train, y_test = train_test_split(feature, target, test_size=0.2, shuffle=True, stratify=target, random_state=len(features))
+        x_train, x_test, y_train, y_test = train_test_split(feature, target, test_size=0.2, shuffle=True, stratify=target, random_state=7)
 
         # setup classifier models
         reg = LogisticRegression(solver='saga')
-        knn = KNeighborsClassifier(n_neighbors =len(features))
-        gbc = GradientBoostingClassifier(learning_rate = 0.8, n_estimators = len(features))
+        knn = KNeighborsClassifier(n_neighbors = 5)
+        gbc = GradientBoostingClassifier(learning_rate = 0.8, n_estimators = 5)
 
         # fit operation
         reg.fit(x_train, y_train)
         knn.fit(x_train, y_train)
         gbc.fit(x_train, y_train)
 
-        # prediction to check accuracy of model
-        pred_r = reg.predict(x_test)
-        pred_k = knn.predict(x_test)
-        pred_g = gbc.predict(x_test)
-
-        logistic_l.append(accuracy_score(y_test,pred_r))
-        knn_l.append(accuracy_score(y_test,pred_k))
-        gbc_l.append(accuracy_score(y_test,pred_g))
-
-
-        best_a = 0
-        best_m = features
-
+        
         # logistic
-
         param_dist = dict(C=stats.uniform(loc=l_a, scale=l_b), penalty=l_c)
         rand_search = RandomizedSearchCV(reg, param_distributions=param_dist, scoring='accuracy',
                                          return_train_score=True, n_jobs=-1)
 
-        for i in logistic_l:
-            scores_kfold = cross_val_score(reg, i, target, cv=len(features))
-            rand_search.fit(x_train, y_train)
-            acc_kfold = np.mean(scores_kfold)
-            pred_rs = rand_search.predict(x_test)
-            acc_rs = accuracy_score(y_test, pred_rs)
+        scores_kfold = cross_val_score(reg, feature, target, cv=7)
+        rand_search.fit(x_train, y_train)
+        acc_kfold = np.mean(scores_kfold)
+        pred_rs = rand_search.predict(x_test)
+        acc_rs = accuracy_score(y_test, pred_rs)
 
-            if acc_rs > best_a:
-                best_a = acc_rs
-                best_m = pred_rs
+        if acc_rs > best_a:
+            best_a = acc_rs
+            best_m = pred_rs
+        
         
         # knn
         param_dist = {'n_neighbors': range(k_a, k_b), 'metric': k_c}
         rand_search = RandomizedSearchCV(knn, param_distributions=param_dist, scoring='accuracy',
                                          return_train_score=True, n_jobs=-1)
 
-        for i in knn_l:
-            scores_kfold = cross_val_score(knn, i, target, cv=len(features))
-            rand_search.fit(x_train, y_train)
-            acc_kfold = np.mean(scores_kfold)
-            pred_rs = rand_search.predict(x_test)
-            acc_rs = accuracy_score(y_test, pred_rs)
+        scores_kfold = cross_val_score(knn, feature, target, cv=7)
+        rand_search.fit(x_train, y_train)
+        acc_kfold = np.mean(scores_kfold)
+        pred_rs = rand_search.predict(x_test)
+        acc_rs = accuracy_score(y_test, pred_rs)
 
-            if acc_rs > best_a:
-                best_a = acc_rs
-                best_m = pred_rs
-
-
+        if acc_rs > best_a:
+            best_a = acc_rs
+            best_m = pred_rs
+        
         # gbc
         param_dist = {'n_estimators': range(g_a, g_b),
                       'max_depth': g_c,
@@ -274,17 +257,16 @@ def best_accuracy(encoding, scaling, features, target, categories):
         rand_search = RandomizedSearchCV(gbc, param_distributions=param_dist, scoring='accuracy',
                                          return_train_score=True, n_jobs=-1)
 
-        for i in gbc_l:
-            scores_kfold = cross_val_score(gbc, i, target, cv=len(features))
-            rand_search.fit(x_train, y_train)
-            acc_kfold = np.mean(scores_kfold)
-            pred_rs = rand_search.predict(x_test)
-            acc_rs = accuracy_score(y_test, pred_rs)
+        scores_kfold = cross_val_score(gbc, feature, target, cv=7)
+        rand_search.fit(x_train, y_train)
+        acc_kfold = np.mean(scores_kfold)
+        pred_rs = rand_search.predict(x_test)
+        acc_rs = accuracy_score(y_test, pred_rs)
 
-            if acc_rs > best_a:
-                best_a = acc_rs
-                best_m = pred_rs
-
+        if acc_rs > best_a:
+            best_a = acc_rs
+            best_m = pred_rs
+        
     return best_m
 
 
