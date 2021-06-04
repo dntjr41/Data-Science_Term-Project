@@ -67,16 +67,16 @@ Logistic Regression
 	rand_search = RandomizedSearchCV(reg, param_distributions=param_dist, scoring='accuracy',  
 	  return_train_score=True, n_jobs=-1)  
 	  
-	for i in logistic_l:  
-	    scores_kfold = cross_val_score(reg, i, target, cv=len(features))  
-	    rand_search.fit(x_train, y_train)  
-	    acc_kfold = np.mean(scores_kfold)  
-	    pred_rs = rand_search.predict(x_test)  
-	    acc_rs = accuracy_score(y_test, pred_rs)  
 	  
-	    if acc_rs > best_a:  
-	        best_a = acc_rs  
-	        best_m = pred_rs
+	scores_kfold = cross_val_score(reg, feature, target, cv=len(features))  
+	rand_search.fit(x_train, y_train)  
+	acc_kfold = np.mean(scores_kfold)  
+	pred_rs = rand_search.predict(x_test)  
+	acc_rs = accuracy_score(y_test, pred_rs)  
+	  
+	if acc_rs > best_a:  
+	    best_a = acc_rs  
+	    best_m = pred_rs
 
 K-Nearest Neighbors
 
@@ -84,16 +84,16 @@ K-Nearest Neighbors
 	rand_search = RandomizedSearchCV(knn, param_distributions=param_dist, scoring='accuracy',  
 	  return_train_score=True, n_jobs=-1)  
 	  
-	for i in knn_l:  
-	    scores_kfold = cross_val_score(knn, i, target, cv=len(features))  
-	    rand_search.fit(x_train, y_train)  
-	    acc_kfold = np.mean(scores_kfold)  
-	    pred_rs = rand_search.predict(x_test)  
-	    acc_rs = accuracy_score(y_test, pred_rs)  
 	  
-	    if acc_rs > best_a:  
-	        best_a = acc_rs  
-	        best_m = pred_rs
+	scores_kfold = cross_val_score(knn, feature, target, cv=len(features))  
+	rand_search.fit(x_train, y_train)  
+	acc_kfold = np.mean(scores_kfold)  
+	pred_rs = rand_search.predict(x_test)  
+	acc_rs = accuracy_score(y_test, pred_rs)  
+	  
+	if acc_rs > best_a:  
+	    best_a = acc_rs  
+	    best_m = pred_rs
 
 Gradient Boosting Classifier
 
@@ -104,16 +104,16 @@ Gradient Boosting Classifier
 	rand_search = RandomizedSearchCV(gbc, param_distributions=param_dist, scoring='accuracy',  
 	  return_train_score=True, n_jobs=-1)  
 	  
-	for i in gbc_l:  
-	    scores_kfold = cross_val_score(gbc, i, target, cv=len(features))  
-	    rand_search.fit(x_train, y_train)  
-	    acc_kfold = np.mean(scores_kfold)  
-	    pred_rs = rand_search.predict(x_test)  
-	    acc_rs = accuracy_score(y_test, pred_rs)  
 	  
-	    if acc_rs > best_a:  
-	        best_a = acc_rs  
-	        best_m = pred_rs
+	scores_kfold = cross_val_score(gbc, i, target, cv=len(features))  
+	rand_search.fit(x_train, y_train)  
+	acc_kfold = np.mean(scores_kfold)  
+	pred_rs = rand_search.predict(x_test)  
+	acc_rs = accuracy_score(y_test, pred_rs)  
+	  
+	if acc_rs > best_a:  
+	    best_a = acc_rs  
+	    best_m = pred_rs
 
 ## Output
 
