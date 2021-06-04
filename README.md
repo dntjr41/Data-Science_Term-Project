@@ -19,6 +19,7 @@ best_accuracy(features, target, categories)
 
      data_encod = list()
 
+     # encoding categorical features
      data = features.copy()
      for feature in categories:
          data[feature] = OrdinalEncoder().fit_transform(data[[feature]])
@@ -75,10 +76,7 @@ best_accuracy(features, target, categories)
          knn_l.append(accuracy_score(y_test,pred_k))
          gbc_l.append(accuracy_score(y_test,pred_g))
 
-     print(logistic_l)
-     print(knn_l)
-     print(gbc_l)
-
+     # find highest accuracy
      l_highest = 0;
      l_index = 0;
      for i, accuracy in enumerate(logistic_l):
@@ -100,6 +98,7 @@ best_accuracy(features, target, categories)
              g_highest = accuracy;
              g_index = i;
 
+     # print best accuracy and combination
      print("Best Accuracy of Logistic Regression is ", encod_scale[l_index], " : ", l_highest)
      print("Best Accuracy of KNN is ", encod_scale[k_index], " : ", k_highest)
      print("Best Accuracy of GBC is ", encod_scale[g_index], " : ", g_highest)
