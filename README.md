@@ -3,7 +3,7 @@
 We offer best-accuracy model creation operation.  You can make best model for your dataset using this code. This code is open source.
 
 
-# Source Progress
+# Source Description
 
 If you want to use this operation, copy or download this source code and call 'best_accuracy()' function. If your dataset is needed another pre-processing, you should do pre-processing before using this function. But this function can only use in classification problem.
 
