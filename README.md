@@ -1,6 +1,5 @@
 # Open Source Software
 
------------------------------
 
 ## best_accuracy()
 : Analyze all combinations of scalers and encoders to produce the highest accuracy combination output
