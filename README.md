@@ -47,12 +47,12 @@ Data encoding and scaling are successful, do oversampling to solve the data imba
 Then, fit 3 algorithm (Logistic Regression, K-Nearest Neighbors, Gradient Boosting Classifier) using pre-processed data.
 
     for feature in data_encod_scaled:  
-	    x_train, x_test, y_train, y_test = train_test_split(feature, target, test_size=0.2, shuffle=True,  stratify=target, random_state=len(features))  
+	    x_train, x_test, y_train, y_test = train_test_split(feature, target, test_size=0.2, shuffle=True,  stratify=target, random_state=7)  
   
     # setup classifier models  
 	reg = LogisticRegression(solver='saga')  
-    knn = KNeighborsClassifier(n_neighbors=len(features))  
-    gbc = GradientBoostingClassifier(learning_rate=0.8, n_estimators=len(features))  
+    knn = KNeighborsClassifier(n_neighbors=5))  
+    gbc = GradientBoostingClassifier(learning_rate=0.8, n_estimators=5)  
   
     # fit operation  
 	reg.fit(x_train, y_train)  
@@ -68,7 +68,7 @@ Logistic Regression
 	  return_train_score=True, n_jobs=-1)  
 	  
 	  
-	scores_kfold = cross_val_score(reg, feature, target, cv=len(features))  
+	scores_kfold = cross_val_score(reg, feature, target, cv=7)  
 	rand_search.fit(x_train, y_train)  
 	acc_kfold = np.mean(scores_kfold)  
 	pred_rs = rand_search.predict(x_test)  
@@ -85,7 +85,7 @@ K-Nearest Neighbors
 	  return_train_score=True, n_jobs=-1)  
 	  
 	  
-	scores_kfold = cross_val_score(knn, feature, target, cv=len(features))  
+	scores_kfold = cross_val_score(knn, feature, target, cv=7)  
 	rand_search.fit(x_train, y_train)  
 	acc_kfold = np.mean(scores_kfold)  
 	pred_rs = rand_search.predict(x_test)  
@@ -105,7 +105,7 @@ Gradient Boosting Classifier
 	  return_train_score=True, n_jobs=-1)  
 	  
 	  
-	scores_kfold = cross_val_score(gbc, i, target, cv=len(features))  
+	scores_kfold = cross_val_score(gbc, i, target, cv=7)  
 	rand_search.fit(x_train, y_train)  
 	acc_kfold = np.mean(scores_kfold)  
 	pred_rs = rand_search.predict(x_test)  
