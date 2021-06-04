@@ -2,7 +2,8 @@
 
 
 ## best_accuracy()
-: Analyze all combinations of scalers and encoders to produce the highest accuracy combination output
+
+    : Analyze all combinations of scalers and encoders to produce the highest accuracy combination output
 
 best_accuracy(features, target, categories)
 - parameter
