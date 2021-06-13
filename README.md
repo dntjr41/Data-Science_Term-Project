@@ -1,3 +1,16 @@
+### Data Science Term Project - Heart Stroke Prediction
+***
+* Open Source Project
+
+1. Objective Setting
+2. Data Curation
+3. Data Inspection
+4. Data Preprocessing
+5. Data Analysis
+6. Data Evaluation
+7. Conclusion
+
+***
 # Open Source Project
 
 We offer best-accuracy model creation operation.  You can make best model for your dataset using this code. This code is open source.
@@ -126,3 +139,27 @@ Finally, you can get the model that has the best accuracy through the best param
 
  - Department of Software, Gachon University
  - It is **Free Open Source**
+
+***
+1. Objective Setting
+* This is the era of smart healthcare.
+* We set the goal of self-examining for heart disease through large data analysis and some machine learning!
+<br>
+
+* ### The Accuracy of Final Model: 0.9211350293532074
+* Predict heart stroke – 92.11%
+* Assume a million people use the prediction.
+* Carotid ultrasound, the simplest heart disease test, costs 100,000 won.
+* Cardiac surgery costs 35,000,000 won.
+<br>
+
+* Predict heart stroke – 92.11%
+* 1,000,000 (people) * 100,000 won (cardiac test costs)
+* 9,211 (people) * 35,000,000 won (surgery costs) 
+* 422,385,000,000 won (save per year) – 4,223 억
+
+***
+2. Data Curation
+* https://www.kaggle.com/lirilkumaramal/heart-stroke
+
+
